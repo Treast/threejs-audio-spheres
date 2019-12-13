@@ -33,20 +33,35 @@ export default class Audio {
 
   play() {
     this.source.buffer = this.audioBuffer;
-    this.source.connect(this.gainNode);
-    this.gainNode.connect(this.analyserNode);
-    this.analyserNode.connect(this.context.destination);
+    this.source.connect(this.analyserNode);
+    this.analyserNode.connect(this.gainNode);
+    this.gainNode.connect(this.context.destination);
     this.source.start(0);
     this.isPlaying = true;
   }
 
+  setVolume(volume: number) {
+    this.gainNode.gain.value = volume;
+  }
+
   refreshFrequencies() {
     if (!this.frequenciesArray) this.frequenciesArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-    this.analyserNode.getByteTimeDomainData(this.frequenciesArray);
+    this.analyserNode.getByteFrequencyData(this.frequenciesArray);
+  }
+
+  getFrequencyIndex(index: number, max: number) {
+    return Math.floor((index / max) * this.analyserNode.frequencyBinCount);
   }
 
   getFrequency(index: number, max: number = this.analyserNode.frequencyBinCount) {
-    const i = Math.floor((index * max) / this.analyserNode.frequencyBinCount);
-    return this.frequenciesArray[i] / 255.0;
+    const n1 = this.getFrequencyIndex(index, max);
+    const n2 = this.getFrequencyIndex(index + 1, max);
+
+    let acc = 0;
+    for (let i = n1; i < n2; i += 1) {
+      acc += this.frequenciesArray[i];
+    }
+
+    return acc / 255.0 / (n2 - n1 - 1);
   }
 }

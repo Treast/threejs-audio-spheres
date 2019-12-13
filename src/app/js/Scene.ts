@@ -1,12 +1,18 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import Audio from './utils/Audio';
+import * as SimplexNoise from 'simplex-noise';
 
 interface Sphere {
   mesh: THREE.Mesh;
   theta: number;
   phi: number;
   r: number;
+  x: number;
+  y: number;
 }
 
 class Scene {
@@ -16,8 +22,13 @@ class Scene {
 
   private controls: OrbitControls;
 
+  private composer: EffectComposer;
+
   private spheres: Sphere[];
   private audio: Audio;
+
+  private simplex: SimplexNoise;
+  private noise: number = 0;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -44,11 +55,22 @@ class Scene {
   }
 
   init() {
-    this.camera.position.set(12, 12, 12);
+    this.camera.position.set(14, 14, 14);
     this.camera.lookAt(0, 0, 0);
 
     this.audio = new Audio();
     this.audio.load('assets/audios/jinjer.mp3');
+    this.audio.setVolume(0.001);
+
+    this.simplex = new SimplexNoise();
+
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+
+    const afterImage = new AfterimagePass();
+    // @ts-ignore
+    afterImage.uniforms['damp'].value = 0.5;
+    this.composer.addPass(afterImage);
 
     const minRadius = 2;
     const maxRadius = 15;
@@ -71,6 +93,8 @@ class Scene {
         phi,
         r,
         mesh: sphere,
+        x: spherePosition.x,
+        y: spherePosition.y,
       });
       this.scene.add(sphere);
     }
@@ -90,23 +114,29 @@ class Scene {
   render() {
     this.audio.refreshFrequencies();
     requestAnimationFrame(() => this.render());
-    this.renderer.render(this.scene, this.camera);
+    this.composer.render();
 
-    if (this.audio.isPlaying) {
-      this.spheres.forEach((sphere, index) => {
-        const frequency = this.map(this.audio.getFrequency(index, this.spheres.length), 0, 1, 0, 5);
+    this.spheres.forEach((sphere, index) => {
+      const nX = this.simplex.noise2D(sphere.x, sphere.y + this.noise);
+      const nY = this.simplex.noise2D(sphere.x + this.noise, sphere.y);
 
-        if (index == 200) console.log(frequency);
+      sphere.theta += 0.003 * nX;
+      sphere.phi -= 0.003 * nY;
 
-        sphere.theta += 0.003 * frequency;
-        sphere.phi -= 0.003 * frequency;
+      if (this.audio.isPlaying) {
+        const f = Math.max(0, this.audio.getFrequency(index, this.spheres.length));
+        const frequency = this.map(f, 0, 1, 0, 2);
 
-        const position = this.getPositionSphere(sphere.r, sphere.theta, sphere.phi);
-        sphere.mesh.position.set(position.x, position.y, position.z);
-      });
-    }
+        sphere.theta += 0.01 * frequency;
+        sphere.phi -= 0.01 * frequency;
+      }
+
+      const position = this.getPositionSphere(sphere.r, sphere.theta, sphere.phi);
+      sphere.mesh.position.set(position.x, position.y, position.z);
+    });
 
     this.controls.update();
+    this.noise += 0.0001;
   }
 
   map(num: number, in_min: number, in_max: number, out_min: number, out_max: number) {
