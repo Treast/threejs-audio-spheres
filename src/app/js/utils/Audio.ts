@@ -26,6 +26,7 @@ export default class Audio {
     request.onload = () => {
       this.context.decodeAudioData(request.response, (buffer: AudioBuffer) => {
         this.audioBuffer = buffer;
+        document.body.classList.add('loaded');
       });
     };
     request.send();

@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import Audio from './utils/Audio';
 import * as SimplexNoise from 'simplex-noise';
 
@@ -30,6 +31,29 @@ class Scene {
   private simplex: SimplexNoise;
   private noise: number = 0;
 
+  private colors: number[] = [
+    0xffc312,
+    0xf79f1f,
+    0xee5a24,
+    0xea2027,
+    0xc4e538,
+    0xa3cb38,
+    0x009432,
+    0x006266,
+    0x12cbc4,
+    0x1289a7,
+    0x0652dd,
+    0x1b1464,
+    0xfda7df,
+    0xd980fa,
+    0x9980fa,
+    0x5758bb,
+    0xed4c67,
+    0xb53471,
+    0x833471,
+    0x6f1e51,
+  ];
+
   constructor() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -44,8 +68,20 @@ class Scene {
 
   bind() {
     window.addEventListener('resize', () => this.onResize);
-    window.addEventListener('click', () => this.audio.play());
-    window.addEventListener('touchstart', () => this.audio.play());
+    document.querySelector('#run').addEventListener('click', () => this.run());
+    document.querySelector('#run').addEventListener('touchstart', () => this.run());
+  }
+
+  run() {
+    document.querySelector('#overlay').classList.add('hide');
+
+    setTimeout(() => {
+      document.querySelector('#overlay').remove();
+    }, 1500);
+
+    setTimeout(() => {
+      this.audio.play();
+    }, 3000);
   }
 
   onResize() {
@@ -60,7 +96,7 @@ class Scene {
 
     this.audio = new Audio();
     this.audio.load('assets/audios/jinjer.mp3');
-    this.audio.setVolume(0.001);
+    this.audio.setVolume(0.5);
 
     this.simplex = new SimplexNoise();
 
@@ -72,13 +108,28 @@ class Scene {
     afterImage.uniforms['damp'].value = 0.5;
     this.composer.addPass(afterImage);
 
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    bloomPass.threshold = 0;
+    bloomPass.strength = 2.2;
+    bloomPass.radius = 0.66;
+    this.composer.addPass(bloomPass);
+
     const minRadius = 2;
     const maxRadius = 15;
 
-    const sphereMaterial = new THREE.MeshNormalMaterial();
+    const pointLight = new THREE.PointLight(0xaaaaaa, 2);
+    this.scene.add(pointLight);
+
+    const ambiantLight = new THREE.AmbientLight(0xe8df97, 0.4);
+    this.scene.add(ambiantLight);
+
     this.spheres = [];
 
     for (let i = 0; i < 400; i += 1) {
+      const sphereMaterial = new THREE.MeshPhongMaterial({
+        color: this.colors[i % this.colors.length],
+        // emissiveIntensity: 1,
+      });
       const sphereGeometry = new THREE.SphereGeometry(0.2, 30, 30);
       const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
       const r = Math.random() * (maxRadius - minRadius) + minRadius;
