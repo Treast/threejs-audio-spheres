@@ -67,7 +67,9 @@ class Scene {
   }
 
   bind() {
-    window.addEventListener('resize', () => this.onResize);
+    window.addEventListener('resize', () => {
+      this.onResize();
+    });
     document.querySelector('#run').addEventListener('click', () => this.run());
     document.querySelector('#run').addEventListener('touchstart', () => this.run());
   }

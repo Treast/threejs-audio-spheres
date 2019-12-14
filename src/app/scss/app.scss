@@ -28,17 +28,24 @@ body {
   color: #ecf0f1;
   font-size: 80px;
 
+  span {
+    transition: margin 0.5s ease, opacity 0.5s ease;
+  }
+
   button {
-    display: none;
-    padding: 12px 30px;
+    padding: 15px 40px;
     border: 2px solid #fff;
     appearance: none;
-    font-size: 24px;
-    background: none;
+    font-size: 20px;
+    background: rgba(#000, 0.6);
     color: #ecf0f1;
-    transition: all 0.3s ease;
     cursor: pointer;
-    pointer-events: all;
+    pointer-events: none;
+    margin-top: 30px;
+    opacity: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: margin 1s ease, opacity 1s ease, background 0.3s ease, color 0.3s ease;
 
     &:hover {
       background: #ecf0f1;
@@ -53,10 +60,15 @@ body {
 
 body.loaded {
   #overlay {
-    font-size: 0;
+    span {
+      margin-top: -30px;
+      opacity: 0;
+    }
 
     button {
-      display: block;
+      margin-top: 0;
+      opacity: 1 !important;
+      pointer-events: all;
     }
   }
 }

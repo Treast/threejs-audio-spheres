@@ -4,13 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Project</title>
+    <meta name="description" content="Spotlights is a WebGL audio experiment" />
+    <meta name="author" content="Vincent RIVA" />
+    <meta name="copyright" content="Vincent RIVA" />
+    <meta property="og:title" content="Spotlights" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Spotlights is a WebGL audio experiment" />
+    <meta property="og:url" content="https://www.vincentriva.fr/spotlights" />
+    <meta property="og:image" content="https://www.vincentriva.fr/spotlights/assets/socials/facebook.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@MCpTreast" />
+    <meta name="twitter:title" content="Spotlights" />
+    <meta name="twitter:description" content="Spotlights is a WebGL audio experiment" />
+    <meta name="twitter:image" content="https://www.vincentriva.fr/spotlights/assets/socials/twitter.jpg" />
+    <title>WebGL | Spotlights</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-26330296-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+
+      gtag('config', 'UA-26330296-2');
+    </script>
   </head>
 
   <body>
     <div id="overlay">
-      Loading
-      <button id="run">Start</button>
+      <span>Loading</span>
+      <button id="run" style="opacity: 0;">Start</button>
     </div>
   </body>
 </html>
